@@ -28,24 +28,10 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: error.message });
     }
 
-    // Test fetch to ensure outbound HTTP requests are working.
-    try {
-      console.log("Attempting test fetch to jsonplaceholder...");
-      const testResponse = await fetch("https://jsonplaceholder.typicode.com/todos/1");
-      if (!testResponse.ok) {
-        console.error("Test fetch failed:", testResponse.status, testResponse.statusText);
-      } else {
-        const testData = await testResponse.json();
-        console.log("Test fetch successful:", testData.title);
-      }
-    } catch (testErr) {
-      console.error("Error during test fetch:", testErr);
-    }
-
     // Process each game.
     for (const game of games) {
       const gameApiId = game.api_id;
-      console.log("processing game ", gameApiId);
+      console.log("processing game ", game.name);
       try {
         // Build the CricAPI URL.
         const apiUrl = `https://api.cricapi.com/v1/match_info?apikey=${CRICAPI_KEY}&id=${gameApiId}`;
@@ -68,10 +54,10 @@ export default async function handler(req, res) {
           console.error(`No result found for game ${gameApiId}`);
           continue;
         }
-
+        console.log("Game status: ", result.status);
         // Only proceed if the match has ended.
         if (result.matchEnded === true) {
-          console.log("updating game ", gameApiId);
+          console.log("Updating game ", game.name);
           // Update the game record with the fetched result.
           const { error: updateError } = await supabase
             .from("match_results")
